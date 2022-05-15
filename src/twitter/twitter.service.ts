@@ -1,20 +1,43 @@
-import { Inject, Injectable } from '@nestjs/common';
-import { SchedulerRegistry, Timeout } from '@nestjs/schedule';
-import { WINSTON_MODULE_PROVIDER, WinstonLogger } from 'nest-winston';
+import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
+import { SchedulerRegistry } from '@nestjs/schedule';
+import { addStreamRule } from './libs/twitter.axios';
 
 @Injectable()
 export class TwitterService {
   INTERVAL_NAME = 'twitter-listener';
   constructor(
     private schedulerRegistry: SchedulerRegistry,
-    @Inject(WINSTON_MODULE_PROVIDER) private readonly logger: WinstonLogger,
+    @Inject(Logger)
+    private readonly logger: LoggerService,
   ) {
     this.bootstrapService();
   }
 
   private bootstrapService() {
-    const interval = setInterval(this.listenTwitterMention.bind(this), 100);
-    this.schedulerRegistry.addInterval(this.INTERVAL_NAME, interval);
+    const fetch = async () => {
+      // TODO
+      // 등록된 모든 룰을 삭제한다.
+
+      // 새 룰을 등록합니다.
+      await addStreamRule({
+        value: process.env.TWITTER_STREAM_RULE_VALUE,
+        tag: process.env.TWITTER_STREAM_RULE_TAG,
+      });
+      this.logger.log('Twitter stream rule registered successfully');
+    };
+
+    fetch()
+      .then(() => {
+        const interval = setInterval(
+          this.listenTwitterMention.bind(this),
+          1000,
+        );
+        this.schedulerRegistry.addInterval(this.INTERVAL_NAME, interval);
+      })
+      .catch((ex) => {
+        this.logger.error('An error occurred TwitterService::bootstrapService');
+        this.logger.error(ex.message);
+      });
   }
 
   async listenTwitterMention() {
@@ -33,7 +56,7 @@ export class TwitterService {
       );
       this.logger.error(ex);
     } finally {
-      this.bootstrapService();
+      // this.bootstrapService();
     }
   }
 }
