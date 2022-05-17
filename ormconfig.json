@@ -3,7 +3,7 @@
   "host": "localhost",
   "port": 3306,
   "username": "root",
-  "password": "ballbot3451",
+  "password": "",
   "database": "jjalbot",
   "entities": ["dist/**/*.entity{.ts,.js}"],
   "synchronize": true

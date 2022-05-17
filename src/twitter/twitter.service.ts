@@ -1,6 +1,11 @@
 import { Inject, Injectable, Logger, LoggerService } from '@nestjs/common';
 import { SchedulerRegistry } from '@nestjs/schedule';
-import { addStreamRule } from './libs/twitter.axios';
+import {
+  addStreamRule,
+  deleteStreamRules,
+  getStreamRules,
+  getTweetStream,
+} from './libs/twitter.axios';
 
 @Injectable()
 export class TwitterService {
@@ -14,19 +19,7 @@ export class TwitterService {
   }
 
   private bootstrapService() {
-    const fetch = async () => {
-      // TODO
-      // 등록된 모든 룰을 삭제한다.
-
-      // 새 룰을 등록합니다.
-      await addStreamRule({
-        value: process.env.TWITTER_STREAM_RULE_VALUE,
-        tag: process.env.TWITTER_STREAM_RULE_TAG,
-      });
-      this.logger.log('Twitter stream rule registered successfully');
-    };
-
-    fetch()
+    this.resetTwitterStream()
       .then(() => {
         const interval = setInterval(
           this.listenTwitterMention.bind(this),
@@ -44,12 +37,8 @@ export class TwitterService {
     this.schedulerRegistry.deleteInterval(this.INTERVAL_NAME);
 
     try {
-      // TODO
-      // Twitter API Stream 을 통해 내가 Mention 된 트윗을
-      // 읽어오도록 한다.
-
-      this.logger.warn('Mention 된 트윗 읽었다!!!!');
-      this.logger.error('오류가 발생헀다고 가정');
+      const res = await getTweetStream();
+      console.log('res', res.data.data);
     } catch (ex) {
       this.logger.error(
         'An error occurred. TwitterService::listenTwitterMention',
@@ -58,5 +47,23 @@ export class TwitterService {
     } finally {
       // this.bootstrapService();
     }
+  }
+
+  async resetTwitterStream() {
+    return true; // 일단 꺼둡니다.
+
+    // 등록된 룰을 읽어온다.
+    const res = await getStreamRules();
+    const data = res.data.data as any[];
+
+    // 룰을 모두 삭제한다.
+    await deleteStreamRules(data.map((value) => value.id));
+
+    // 새 룰을 등록합니다.
+    await addStreamRule({
+      value: process.env.TWITTER_STREAM_RULE_VALUE,
+      tag: process.env.TWITTER_STREAM_RULE_TAG,
+    });
+    this.logger.log('Twitter stream rule registered successfully');
   }
 }
