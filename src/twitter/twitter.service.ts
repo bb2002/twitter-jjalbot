@@ -6,6 +6,8 @@ import {
   getStreamRules,
   getTweetStream,
 } from './libs/twitter.axios';
+import { MentionTweet } from './dto/mention-tweet.dto';
+import { CommandDto } from './dto/command.dto';
 
 @Injectable()
 export class TwitterService {
@@ -33,25 +35,7 @@ export class TwitterService {
       });
   }
 
-  async listenTwitterMention() {
-    this.schedulerRegistry.deleteInterval(this.INTERVAL_NAME);
-
-    try {
-      const res = await getTweetStream();
-      console.log('res', res.data.data);
-    } catch (ex) {
-      this.logger.error(
-        'An error occurred. TwitterService::listenTwitterMention',
-      );
-      this.logger.error(ex);
-    } finally {
-      // this.bootstrapService();
-    }
-  }
-
-  async resetTwitterStream() {
-    return true; // 일단 꺼둡니다.
-
+  private async resetTwitterStream() {
     // 등록된 룰을 읽어온다.
     const res = await getStreamRules();
     const data = res.data.data as any[];
@@ -65,5 +49,47 @@ export class TwitterService {
       tag: process.env.TWITTER_STREAM_RULE_TAG,
     });
     this.logger.log('Twitter stream rule registered successfully');
+  }
+
+  async listenTwitterMention() {
+    this.schedulerRegistry.deleteInterval(this.INTERVAL_NAME);
+
+    try {
+      const response = await getTweetStream();
+      const stream = response.data;
+
+      stream.on('data', async (data) => {
+        const str = data.toString();
+        if (str) {
+          let dto: MentionTweet;
+          try {
+            // JSON Parse 에는 오류가 발생 할 수 있으므로 조치한다.
+            dto = MentionTweet.make(JSON.parse(str));
+          } catch (ex) {
+            return;
+          }
+
+          await this.onMentionTweetHandler(dto);
+        }
+      });
+
+      stream.on('end', () => {
+        this.logger.warn('Stream closed. Try again.');
+        this.bootstrapService();
+      });
+    } catch (ex) {
+      this.logger.error(
+        'An error occurred. TwitterService::listenTwitterMention',
+      );
+      this.logger.error(ex);
+      this.bootstrapService();
+    }
+  }
+
+  private async onMentionTweetHandler(tweet: MentionTweet) {
+    const lines = tweet.text.split('\n');
+    const commands = lines.map((value) => CommandDto.make(value));
+
+    console.log(commands);
   }
 }

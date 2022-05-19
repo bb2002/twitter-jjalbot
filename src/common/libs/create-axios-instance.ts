@@ -30,7 +30,6 @@ class OAuth10Helper {
 export const twitterAxios = () =>
   axios.create({
     baseURL: 'https://api.twitter.com/2',
-    timeout: 3000,
     headers: {
       Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}`,
     },
