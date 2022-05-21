@@ -8,12 +8,17 @@
 export enum JjalBotCommand {
   CMD_UNKNOWN,
   CMD_ADD,
+  CMD_SEARCH,
 }
 // 주 명령어 타입을 추론하기 위한 문자 배열
 export const JjalBotCommandMeta = {
   [JjalBotCommand.CMD_ADD]: ['register', '등록', '登録'],
+  [JjalBotCommand.CMD_SEARCH]: ['search', '검색', '検索'],
 };
-export const JjalBotCommandArray = [JjalBotCommand.CMD_ADD];
+export const JjalBotCommandArray = [
+  JjalBotCommand.CMD_ADD,
+  JjalBotCommand.CMD_SEARCH,
+];
 /**
  * 옵션 추가하기
  * 1. enum 타입에 등록
@@ -30,3 +35,5 @@ export const JjalBotOptionsMeta = {
   [JjalBotOptions.OPTION_TAG]: ['--tag', '-t'],
 };
 export const JjalBotOptionsArray = [JjalBotOptions.OPTION_TAG];
+
+export const JjalBotIgnores = ['\r', '\t', ''];

@@ -5,9 +5,11 @@ import {
   deleteStreamRules,
   getStreamRules,
   getTweetStream,
-} from './libs/twitter.axios';
+} from '../common/libs/twitter.axios';
 import { MentionTweet } from './dto/mention-tweet.dto';
-import { parseCommand } from '../common/libs/jjalbot-cmd/command-parser';
+import { parseCommand } from '../jjalbot/libs/command-parser';
+import { JjalbotService } from '../jjalbot/jjalbot.service';
+import { JjalBotCommand, JjalBotIgnores } from './enums/jjalbot-command.enum';
 
 @Injectable()
 export class TwitterService {
@@ -16,6 +18,7 @@ export class TwitterService {
     private schedulerRegistry: SchedulerRegistry,
     @Inject(Logger)
     private readonly logger: LoggerService,
+    private readonly jjalbotService: JjalbotService,
   ) {
     this.bootstrapService();
   }
@@ -31,19 +34,19 @@ export class TwitterService {
       })
       .catch((ex) => {
         this.logger.error('An error occurred TwitterService::bootstrapService');
-        this.logger.error(ex.message);
+        this.logger.error(ex);
       });
   }
 
   private async resetTwitterStream() {
-    return true;
-
     // 등록된 룰을 읽어온다.
     const res = await getStreamRules();
     const data = res.data.data as any[];
 
     // 룰을 모두 삭제한다.
-    await deleteStreamRules(data.map((value) => value.id));
+    if (data) {
+      await deleteStreamRules(data.map((value) => value.id));
+    }
 
     // 새 룰을 등록합니다.
     await addStreamRule({
@@ -90,8 +93,32 @@ export class TwitterService {
 
   private async onMentionTweetHandler(tweet: MentionTweet) {
     const lines = tweet.text.split('\n');
-    const commands = lines.map((value) => parseCommand(value));
 
-    console.log(commands);
+    for (const line of lines) {
+      if (
+        [
+          ...JjalBotIgnores,
+          ...(process.env.JJALBOT_IGNORE ?? '').split(','),
+        ].indexOf(line) !== -1
+      ) {
+        break;
+      } else {
+        const command = parseCommand(line);
+
+        if (command.isCommand) {
+          switch (command.root.command) {
+            case JjalBotCommand.CMD_ADD:
+              await this.jjalbotService.addJjal(tweet);
+              return;
+            case JjalBotCommand.CMD_SEARCH:
+              await this.jjalbotService.searchJjalWithOptions(tweet);
+              return;
+          }
+        } else {
+          await this.jjalbotService.searchJjalWithoutOptions(tweet);
+          return;
+        }
+      }
+    }
   }
 }

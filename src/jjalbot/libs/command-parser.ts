@@ -10,7 +10,7 @@ import {
   CommandArgs,
   CommandObject,
   RootCommandArg,
-} from '../../../twitter/dto/command.dto';
+} from '../../twitter/dto/command.dto';
 import { JjalBotCommandNotFoundException } from './jjalbot-cmd-parser.exceptions';
 
 export function parseCommand(line: string) {

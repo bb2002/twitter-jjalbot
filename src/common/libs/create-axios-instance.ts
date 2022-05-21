@@ -2,7 +2,7 @@ import axios from 'axios';
 import * as OAuth from 'oauth-1.0a';
 import * as crypto from 'crypto';
 
-class OAuth10Helper {
+export class OAuth10Helper {
   static getAuthHeaderForRequest(request: any) {
     const oauth = new OAuth({
       consumer: {
@@ -34,3 +34,4 @@ export const twitterAxios = () =>
       Authorization: `Bearer ${process.env.TWITTER_BEARER_TOKEN}`,
     },
   });
+
