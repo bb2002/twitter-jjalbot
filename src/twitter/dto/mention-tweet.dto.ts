@@ -8,12 +8,26 @@ export class MentionTweetMatchingRule {
   tag: string;
 }
 
+export class MentionTweetMedia {
+  @IsString()
+  mediaKey: string;
+
+  @IsString()
+  type: string;
+
+  @IsString()
+  mediaUrl: string;
+}
+
 export class MentionTweet {
   @IsNumber()
   tweetId: string;
 
   @IsString()
   text: string;
+
+  @IsArray()
+  media: MentionTweetMedia[];
 
   @IsArray()
   matchingRules: MentionTweetMatchingRule[];
@@ -27,6 +41,13 @@ export class MentionTweet {
       ruleDto.id = value.id;
       ruleDto.tag = value.tag;
       return ruleDto;
+    });
+    dto.media = raw.includes?.media?.map((value) => {
+      const mediaDto = new MentionTweetMedia();
+      mediaDto.mediaUrl = value.url;
+      mediaDto.mediaKey = value.media_key;
+      mediaDto.type = value.type;
+      return mediaDto;
     });
     return dto;
   }

@@ -7,7 +7,7 @@ import {
   getTweetStream,
 } from './libs/twitter.axios';
 import { MentionTweet } from './dto/mention-tweet.dto';
-import { CommandDto } from './dto/command.dto';
+import { parseCommand } from '../common/libs/jjalbot-cmd/command-parser';
 
 @Injectable()
 export class TwitterService {
@@ -36,6 +36,8 @@ export class TwitterService {
   }
 
   private async resetTwitterStream() {
+    return true;
+
     // 등록된 룰을 읽어온다.
     const res = await getStreamRules();
     const data = res.data.data as any[];
@@ -88,7 +90,7 @@ export class TwitterService {
 
   private async onMentionTweetHandler(tweet: MentionTweet) {
     const lines = tweet.text.split('\n');
-    const commands = lines.map((value) => CommandDto.make(value));
+    const commands = lines.map((value) => parseCommand(value));
 
     console.log(commands);
   }
