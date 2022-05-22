@@ -94,28 +94,28 @@ export class TwitterService {
   private async onMentionTweetHandler(tweet: MentionTweet) {
     const lines = tweet.text.split('\n');
 
-    for (const line of lines) {
+    for (let line of lines) {
+      line = line.trim();
+
       if (
         [
           ...JjalBotIgnores,
           ...(process.env.JJALBOT_IGNORE ?? '').split(','),
-        ].indexOf(line) !== -1
+        ].indexOf(line) === -1
       ) {
-        break;
-      } else {
         const command = parseCommand(line);
 
         if (command.isCommand) {
           switch (command.root.command) {
             case JjalBotCommand.CMD_ADD:
-              await this.jjalbotService.addJjal(tweet);
+              await this.jjalbotService.addJjal(tweet, command);
               return;
             case JjalBotCommand.CMD_SEARCH:
-              await this.jjalbotService.searchJjalWithOptions(tweet);
+              await this.jjalbotService.searchJjalWithOptions(tweet, command);
               return;
           }
         } else {
-          await this.jjalbotService.searchJjalWithoutOptions(tweet);
+          await this.jjalbotService.searchJjalWithoutOptions(tweet, command);
           return;
         }
       }

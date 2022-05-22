@@ -19,7 +19,7 @@ export const deleteStreamRules = (ids: string[]) =>
 
 export const getTweetStream = () =>
   twitterAxios().get(
-    '/tweets/search/stream?tweet.fields=attachments&expansions=attachments.media_keys&media.fields=url',
+    '/tweets/search/stream?tweet.fields=attachments,entities&expansions=attachments.media_keys&media.fields=url',
     {
       responseType: 'stream',
     },

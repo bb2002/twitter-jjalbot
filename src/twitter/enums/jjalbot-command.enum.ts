@@ -12,7 +12,7 @@ export enum JjalBotCommand {
 }
 // 주 명령어 타입을 추론하기 위한 문자 배열
 export const JjalBotCommandMeta = {
-  [JjalBotCommand.CMD_ADD]: ['register', '등록', '登録'],
+  [JjalBotCommand.CMD_ADD]: ['add', '등록', '登録'],
   [JjalBotCommand.CMD_SEARCH]: ['search', '검색', '検索'],
 };
 export const JjalBotCommandArray = [
@@ -28,12 +28,16 @@ export const JjalBotCommandArray = [
 // 명령어 옵션 타입
 export enum JjalBotOptions {
   OPTION_UNKNOWN,
+  OPTION_TITLE,
   OPTION_TAG,
+  OPTION_EXACT,
 }
 // 명령어 옵션을 추론 하기 위한 문자 배열
 export const JjalBotOptionsMeta = {
-  [JjalBotOptions.OPTION_TAG]: ['--tag', '-t'],
+  [JjalBotOptions.OPTION_TITLE]: ['--title', '-tl'],
+  [JjalBotOptions.OPTION_TAG]: ['--tag', '-tg'],
+  [JjalBotOptions.OPTION_EXACT]: ['--exact', '-ex'],
 };
-export const JjalBotOptionsArray = [JjalBotOptions.OPTION_TAG];
+export const JjalBotOptionsArray = [JjalBotOptions.OPTION_TITLE];
 
 export const JjalBotIgnores = ['\r', '\t', ''];

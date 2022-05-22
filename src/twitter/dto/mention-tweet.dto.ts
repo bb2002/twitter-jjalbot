@@ -30,12 +30,18 @@ export class MentionTweet {
   media: MentionTweetMedia[];
 
   @IsArray()
+  hashtags: string[];
+
+  @IsArray()
+  mentions: string[];
+
+  @IsArray()
   matchingRules: MentionTweetMatchingRule[];
 
   static make(raw) {
     const dto = new MentionTweet();
     dto.tweetId = raw.data.id;
-    dto.text = raw.data.text;
+    dto.text = raw.data.text.split('https://')[0];
     dto.matchingRules = raw.matching_rules?.map((value) => {
       const ruleDto = new MentionTweetMatchingRule();
       ruleDto.id = value.id;
@@ -45,10 +51,12 @@ export class MentionTweet {
     dto.media = raw.includes?.media?.map((value) => {
       const mediaDto = new MentionTweetMedia();
       mediaDto.mediaUrl = value.url;
-      mediaDto.mediaKey = value.media_key;
+      mediaDto.mediaKey = value.media_key?.split('_')[1];
       mediaDto.type = value.type;
       return mediaDto;
     });
+    dto.hashtags = raw.data.entities?.hashtags?.map((value) => value.tag);
+    dto.mentions = raw.data.entities?.mentions?.map((value) => value.username);
     return dto;
   }
 }
